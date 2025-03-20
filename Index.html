@@ -55,9 +55,6 @@
             el: '#app',
             data: {
                 map:<div id="map" style="height: 500px; width: 100%;"></div>
-                    setTimeout(() => {
-    map.invalidateSize();
-}, 500);
                 city: 'Trieste',
                 coordinates: '45° 38′ 48″ N 13° 45′ 56″ E',
                 selectedCity: 'Trieste',
@@ -66,7 +63,7 @@
                 customText: '',
                 icons: ['❤️', '✈️', '🏠', '🔑', '⭐'],
                 tileLayer:<script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded",function() {
         var map = L.map('map').setView([45.65, 13.77], 14);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -74,8 +71,6 @@
         }).addTo(map);
     });
 </script>
-NETLIFY_DISABLE_IPV6 = true
-
             },
             mounted() {
                 this.$nextTick(() => {
