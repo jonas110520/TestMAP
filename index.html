@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Personalizza la tua Cartina</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        #app { display: flex; max-width: 1200px; margin: auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #map-container { width: 70%; padding-right: 20px; }
+        #map { height: 70vh; width: 100%; border-radius: 5px; background-color: #ddd; }
+        #controls { width: 30%; }
+        .design-option { border: 2px solid transparent; cursor: pointer; padding: 5px; }
+        .design-option.selected { border-color: #8B0000; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="map-container">
+            <div id="map"></div>
+            <h2 class="text-center text-2xl font-bold mt-4">{{ selectedCity }}</h2>
+            <p class="text-center text-gray-500">Italia - {{ coordinates }}</p>
+        </div>
+        <div id="controls">
+            <h3 class="text-lg font-bold">Scegli il luogo</h3>
+            <input type="text" v-model="city" placeholder="Es. Trieste" class="w-full p-2 border rounded" @keyup.enter="searchCity" />
+            <h3 class="text-lg font-bold mt-4">Scegli lo stile della cartina</h3>
+            <select v-model="mapStyle" @change="updateMapStyle" class="w-full p-2 border rounded">
+                <option value="toner-lite">Bianco e Nero</option>
+                <option value="terrain-lines">Schizzo Tecnico</option>
+                <option value="watercolor">Acquerello</option>
+                <option value="standard">OpenStreetMap</option>
+            </select>
+            <h3 class="text-lg font-bold mt-4">Aggiungi Simboli</h3>
+            <div class="flex flex-wrap gap-2">
+                <button v-for="(icon, index) in icons" :key="index" class="p-2 border rounded" @click="selectedIcon = icon">
+                    {{ icon }}
+                </button>
+            </div>
+            <h3 class="text-lg font-bold mt-4">Testo Personalizzato</h3>
+            <input type="text" v-model="customText" placeholder="Inserisci un testo" class="w-full p-2 border rounded" />
+            <button class="w-full bg-blue-700 text-white p-2 rounded mt-4" @click="exportPDF">Stampa PDF</button>
+        </div>
+    </div>
+
+   <script>
+        const { jsPDF } = window.jspdf;
+
+        new Vue({
+            el: '#app',
+            data: {
+                map: null,
+                city: 'Trieste',
+                coordinates: '45° 38′ 48″ N 13° 45′ 56″ E',
+                selectedCity: 'Trieste',
+                mapStyle: 'toner-lite',
+                selectedIcon: '',
+                customText: '',
+                icons: ['❤️', '✈️', '🏠', '🔑', '⭐'],
+                tileLayer: null
+            },
+            mounted() {
+                this.$nextTick(() => {
+                    this.initMap();
+                });
+            },
+            methods: {
+                initMap() {
+                    this.map = L.map('map', { zoomControl: true }).setView([45.65, 13.77], 14);
+                    this.addTileLayer();
+                    this.map.on('click', this.addMarker);
+                },
+                addTileLayer() {
+                    const styles = {
+                        'toner-lite': 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+                        'terrain-lines': 'https://stamen-tiles.a.ssl.fastly.net/terrain-lines/{z}/{x}/{y}.jpg',
+                        'watercolor': 'https://stamen-tiles.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg',
+                        'standard': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                    };
+                    if (this.tileLayer) {
+                        this.map.removeLayer(this.tileLayer);
+                    }
+                    this.tileLayer = L.tileLayer(styles[this.mapStyle], {
+                        attribution: 'Map data &copy; OpenStreetMap contributors'
+                    }).addTo(this.map);
+                },
+                updateMapStyle() {
+                    this.addTileLayer();
+                },
+                searchCity() {
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${this.city}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                const location = data[0];
+                                this.map.setView([location.lat, location.lon], 14);
+                                this.selectedCity = this.city;
+                                this.coordinates = `${location.lat}° N, ${location.lon}° E`;
+                            }
+                        });
+                },
+                addMarker(e) {
+                    L.marker(e.latlng, {
+                        icon: L.divIcon({
+                            className: 'custom-marker',
+                            html: `<div style='font-size: 24px;'>${this.selectedIcon}</div><div>${this.customText}</div>`,
+                            iconSize: [50, 50],
+                            iconAnchor: [25, 50]
+                        })
+                    }).addTo(this.map);
+                },
+                exportPDF() {
+                    const doc = new jsPDF();
+                    doc.text('Personalizzazione Mappa', 10, 10);
+                    doc.text(`Città: ${this.selectedCity}`, 10, 20);
+                    doc.text(`Coordinate: ${this.coordinates}`, 10, 30);
+                    doc.save('cartina_personalizzata.pdf');
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
