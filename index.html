@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Personalizza la tua Cartina</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -65,13 +65,13 @@
                 tileLayer: null
             },
             mounted() {
-                this.$nextTick(() => {
+                document.addEventListener("DOMContentLoaded", () => {
                     this.initMap();
                 });
             },
             methods: {
                 initMap() {
-                    this.map = L.map('map', { zoomControl: true }).setView([45.65, 13.77], 14);
+                    this.map = L.map('map', { zoomControl: true, tap: false }).setView([45.65, 13.77], 14);
                     this.addTileLayer();
                     this.map.on('click', this.addMarker);
                 },
@@ -125,4 +125,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
